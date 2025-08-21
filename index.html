@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eric's Drum Sheets Library</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .search-box {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 30px;
+            display: block;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .sheets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .sheet-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .sheet-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+        .sheet-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        .sheet-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+            word-break: break-word;
+        }
+        .sheet-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+            text-align: center;
+        }
+        .btn-view {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-download {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        .stats {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        .no-results {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            margin-top: 50px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🥁 Drum Sheets Library</h1>
+        <p class="subtitle">Atlanta Institute of Music and Media</p>
+        
+        <input type="text" 
+               class="search-box" 
+               id="searchBox" 
+               placeholder="Search sheets... (e.g., 'jazz', 'basic beats', 'fills')">
+        
+        <div class="sheets-grid" id="sheetsGrid">
+            <!-- PDF cards will be inserted here by JavaScript -->
+        </div>
+        
+        <div class="no-results" id="noResults">
+            No sheets found matching your search. Try different keywords!
+        </div>
+        
+        <div class="stats">
+            <span id="sheetCount">0</span> drum sheets available | 
+            Last updated: <span id="updateTime"></span>
+        </div>
+    </div>
+    
+    <script>
+        // PDF files data will be inserted here by the bash script
+        const pdfFiles = [
+const pdfFiles = [
+  {name: 'bellpatterns', path: 'DOUBLE BASS/BellPatterns/PDF/bellpatterns.pdf'},
+  {name: 'doubletime', path: 'DOUBLE BASS/DoubleTime/PDF/doubletime.pdf'},
+  {name: 'doubletime', path: 'DOUBLE BASS/DoubleTime/source/latex/doubletime.pdf'},
+  {name: 'halftime', path: 'DOUBLE BASS/HalfTimeBell/PDF/halftime.pdf'},
+  {name: 'halftime', path: 'DOUBLE BASS/HalfTimeBell/source/latex/halftime.pdf'},
+  {name: 'halftimegrooves', path: 'DOUBLE BASS/HalfTimeGrooves/PDF/halftimegrooves.pdf'},
+  {name: 'halftimegrooves', path: 'DOUBLE BASS/HalfTimeGrooves/source/latex/halftimegrooves.pdf'},
+  {name: 'running', path: 'DOUBLE BASS/Running/PDF/running.pdf'},
+  {name: 'running', path: 'DOUBLE BASS/Running/source/latex/running.pdf'},
+  {name: 'doublebass', path: 'DOUBLE BASS/Sixteenth/PDF/doublebass.pdf'},
+  {name: 'doublebass', path: 'DOUBLE BASS/Sixteenth/source/latex/doublebass.pdf'},
+  {name: 'cymbalpatterns', path: 'FUNK/cymbalpatterns.pdf'},
+  {name: 'jc5-3p', path: 'JAZZ/Jazz Comping in 5/PDF/jc5-3p.pdf'},
+  {name: 'jc5', path: 'JAZZ/Jazz Comping in 5/PDF/jc5.pdf'},
+  {name: 'warmupsp1', path: 'JAZZ/Warmups p1/warmupsp1.pdf'},
+  {name: 'lc1', path: 'LATIN/Lating Comping/3-2 Rumba Clave 8ths and 16ths/pdf/lc1.pdf'},
+  {name: 'lc2', path: 'LATIN/Lating Comping/3-2 Rumba Clave 8ths and displaced 16ths/pdf/lc2.pdf'},
+  {name: 'lc3', path: 'LATIN/Lating Comping/Cascara 8ths and 16ths/pdf/lc3.pdf'},
+  {name: 'lc3', path: 'LATIN/Lating Comping/Cascara 8ths and 16ths/source/latex/lc3.pdf'},
+  {name: '3-VOICE-COMPING', path: 'PDF/CHOP SHOP/3-VOICE-COMPING.pdf'},
+  {name: 'basicrockbeats', path: 'READING/Basic Rock Beats/PDF/basicrockbeats.pdf'},
+  {name: 'brb-16', path: 'READING/Basic Rock Beats/PDF/brb-16.pdf'},
+  {name: 'brb-162', path: 'READING/Basic Rock Beats/PDF/brb-162.pdf'},
+  {name: 'brb-4', path: 'READING/Basic Rock Beats/PDF/brb-4.pdf'},
+  {name: 'brb-8', path: 'READING/Basic Rock Beats/PDF/brb-8.pdf'},
+  {name: 'brb-o', path: 'READING/Basic Rock Beats/PDF/brb-o.pdf'},
+  {name: 'brb-s', path: 'READING/Basic Rock Beats/PDF/brb-s.pdf'},
+  {name: 'brb-16', path: 'READING/Basic Rock Beats/Source/latex/brb-16.pdf'},
+  {name: 'brb-162', path: 'READING/Basic Rock Beats/Source/latex/brb-162.pdf'},
+  {name: 'brb-4', path: 'READING/Basic Rock Beats/Source/latex/brb-4.pdf'},
+  {name: 'brb-8', path: 'READING/Basic Rock Beats/Source/latex/brb-8.pdf'},
+  {name: 'brb-o', path: 'READING/Basic Rock Beats/Source/latex/brb-o.pdf'},
+  {name: 'tmp0b3eiuz5', path: 'READING/Basic Rock Beats/Source/latex/tmp0b3eiuz5.pdf'},
+  {name: 'tmp1gnl7spw', path: 'READING/Basic Rock Beats/Source/latex/tmp1gnl7spw.pdf'},
+  {name: 'tmpgjqcskds', path: 'READING/Basic Rock Beats/Source/latex/tmpgjqcskds.pdf'},
+  {name: 'tmpjfk_4azc', path: 'READING/Basic Rock Beats/Source/latex/tmpjfk_4azc.pdf'},
+  {name: 'tmpq4p06k55', path: 'READING/Basic Rock Beats/Source/latex/tmpq4p06k55.pdf'},
+  {name: 'tmpwkghoor2', path: 'READING/Basic Rock Beats/Source/latex/tmpwkghoor2.pdf'},
+  {name: 'beelzebub', path: 'READING/Beelzebub/PDF/beelzebub.pdf'},
+  {name: 'bodiddley', path: 'READING/Bo Diddley/PDF/bodiddley.pdf'},
+  {name: 'bodiddley', path: 'READING/Bo Diddley/source/bodiddley.pdf'},
+  {name: 'bodiddley', path: 'READING/Bo Diddley/source/latex/bodiddley.pdf'},
+  {name: 'drum-set-reading-warmups-1', path: 'READING/Drum Set Reading - Warmups/PDF/drum-set-reading-warmups-1.pdf'},
+  {name: 'drum-set-reading-warmups-2', path: 'READING/Drum Set Reading - Warmups/PDF/drum-set-reading-warmups-2.pdf'},
+  {name: 'drum-set-reading-warmups-3', path: 'READING/Drum Set Reading - Warmups/PDF/drum-set-reading-warmups-3.pdf'},
+  {name: 'drum-set-reading-warmups-4', path: 'READING/Drum Set Reading - Warmups/PDF/drum-set-reading-warmups-4.pdf'},
+  {name: 'drum-set-reading-warmups-5', path: 'READING/Drum Set Reading - Warmups/PDF/drum-set-reading-warmups-5.pdf'},
+  {name: 'drum-set-reading-warmups-6', path: 'READING/Drum Set Reading - Warmups/PDF/drum-set-reading-warmups-6.pdf'},
+  {name: 'drum-set-reading-warmups-7', path: 'READING/Drum Set Reading - Warmups/PDF/drum-set-reading-warmups-7.pdf'},
+  {name: 'reading2a', path: 'READING/Drum Set Reading - Warmups/reading2a.pdf'},
+  {name: 'lily-ea4e844c-1', path: 'READING/Drum Set Reading - Warmups/source/latex/working/09/lily-ea4e844c-1.pdf'},
+  {name: 'lily-ea4e844c-2', path: 'READING/Drum Set Reading - Warmups/source/latex/working/09/lily-ea4e844c-2.pdf'},
+  {name: 'lily-ea4e844c-3', path: 'READING/Drum Set Reading - Warmups/source/latex/working/09/lily-ea4e844c-3.pdf'},
+  {name: 'lily-ea4e844c-4', path: 'READING/Drum Set Reading - Warmups/source/latex/working/09/lily-ea4e844c-4.pdf'},
+  {name: 'lily-ea4e844c-5', path: 'READING/Drum Set Reading - Warmups/source/latex/working/09/lily-ea4e844c-5.pdf'},
+  {name: 'lily-ea4e844c-6', path: 'READING/Drum Set Reading - Warmups/source/latex/working/09/lily-ea4e844c-6.pdf'},
+  {name: 'lily-ea4e844c-7', path: 'READING/Drum Set Reading - Warmups/source/latex/working/09/lily-ea4e844c-7.pdf'},
+  {name: 'lily-ea4e844c', path: 'READING/Drum Set Reading - Warmups/source/latex/working/09/lily-ea4e844c.pdf'},
+  {name: 'lily-5a649ac3-1', path: 'READING/Drum Set Reading - Warmups/source/latex/working/28/lily-5a649ac3-1.pdf'},
+  {name: 'lily-5a649ac3-2', path: 'READING/Drum Set Reading - Warmups/source/latex/working/28/lily-5a649ac3-2.pdf'},
+  {name: 'lily-5a649ac3-3', path: 'READING/Drum Set Reading - Warmups/source/latex/working/28/lily-5a649ac3-3.pdf'},
+  {name: 'lily-5a649ac3-4', path: 'READING/Drum Set Reading - Warmups/source/latex/working/28/lily-5a649ac3-4.pdf'},
+  {name: 'lily-5a649ac3-5', path: 'READING/Drum Set Reading - Warmups/source/latex/working/28/lily-5a649ac3-5.pdf'},
+  {name: 'lily-5a649ac3-6', path: 'READING/Drum Set Reading - Warmups/source/latex/working/28/lily-5a649ac3-6.pdf'},
+  {name: 'lily-5a649ac3-7', path: 'READING/Drum Set Reading - Warmups/source/latex/working/28/lily-5a649ac3-7.pdf'},
+  {name: 'lily-5a649ac3', path: 'READING/Drum Set Reading - Warmups/source/latex/working/28/lily-5a649ac3.pdf'},
+  {name: 'lily-0632b509-1', path: 'READING/Drum Set Reading - Warmups/source/latex/working/3e/lily-0632b509-1.pdf'},
+  {name: 'lily-0632b509-2', path: 'READING/Drum Set Reading - Warmups/source/latex/working/3e/lily-0632b509-2.pdf'},
+  {name: 'lily-0632b509-3', path: 'READING/Drum Set Reading - Warmups/source/latex/working/3e/lily-0632b509-3.pdf'},
+  {name: 'lily-0632b509-4', path: 'READING/Drum Set Reading - Warmups/source/latex/working/3e/lily-0632b509-4.pdf'},
+  {name: 'lily-0632b509-5', path: 'READING/Drum Set Reading - Warmups/source/latex/working/3e/lily-0632b509-5.pdf'},
+  {name: 'lily-0632b509-6', path: 'READING/Drum Set Reading - Warmups/source/latex/working/3e/lily-0632b509-6.pdf'},
+  {name: 'lily-0632b509-7', path: 'READING/Drum Set Reading - Warmups/source/latex/working/3e/lily-0632b509-7.pdf'},
+  {name: 'lily-0632b509', path: 'READING/Drum Set Reading - Warmups/source/latex/working/3e/lily-0632b509.pdf'},
+  {name: 'lily-499dda10-1', path: 'READING/Drum Set Reading - Warmups/source/latex/working/45/lily-499dda10-1.pdf'},
+  {name: 'lily-499dda10-2', path: 'READING/Drum Set Reading - Warmups/source/latex/working/45/lily-499dda10-2.pdf'},
+  {name: 'lily-499dda10-3', path: 'READING/Drum Set Reading - Warmups/source/latex/working/45/lily-499dda10-3.pdf'},
+  {name: 'lily-499dda10-4', path: 'READING/Drum Set Reading - Warmups/source/latex/working/45/lily-499dda10-4.pdf'},
+  {name: 'lily-499dda10-5', path: 'READING/Drum Set Reading - Warmups/source/latex/working/45/lily-499dda10-5.pdf'},
+  {name: 'lily-499dda10-6', path: 'READING/Drum Set Reading - Warmups/source/latex/working/45/lily-499dda10-6.pdf'},
+  {name: 'lily-499dda10-7', path: 'READING/Drum Set Reading - Warmups/source/latex/working/45/lily-499dda10-7.pdf'},
+  {name: 'lily-499dda10', path: 'READING/Drum Set Reading - Warmups/source/latex/working/45/lily-499dda10.pdf'},
+  {name: 'lily-5423ea67-1', path: 'READING/Drum Set Reading - Warmups/source/latex/working/4f/lily-5423ea67-1.pdf'},
+  {name: 'lily-5423ea67-2', path: 'READING/Drum Set Reading - Warmups/source/latex/working/4f/lily-5423ea67-2.pdf'},
+  {name: 'lily-5423ea67-3', path: 'READING/Drum Set Reading - Warmups/source/latex/working/4f/lily-5423ea67-3.pdf'},
+  {name: 'lily-5423ea67-4', path: 'READING/Drum Set Reading - Warmups/source/latex/working/4f/lily-5423ea67-4.pdf'},
+  {name: 'lily-5423ea67-5', path: 'READING/Drum Set Reading - Warmups/source/latex/working/4f/lily-5423ea67-5.pdf'},
+  {name: 'lily-5423ea67-6', path: 'READING/Drum Set Reading - Warmups/source/latex/working/4f/lily-5423ea67-6.pdf'},
+  {name: 'lily-5423ea67-7', path: 'READING/Drum Set Reading - Warmups/source/latex/working/4f/lily-5423ea67-7.pdf'},
+  {name: 'lily-5423ea67', path: 'READING/Drum Set Reading - Warmups/source/latex/working/4f/lily-5423ea67.pdf'},
+  {name: 'lily-4c0bb56c-1', path: 'READING/Drum Set Reading - Warmups/source/latex/working/68/lily-4c0bb56c-1.pdf'},
+  {name: 'lily-4c0bb56c-2', path: 'READING/Drum Set Reading - Warmups/source/latex/working/68/lily-4c0bb56c-2.pdf'},
+  {name: 'lily-4c0bb56c-3', path: 'READING/Drum Set Reading - Warmups/source/latex/working/68/lily-4c0bb56c-3.pdf'},
+  {name: 'lily-4c0bb56c-4', path: 'READING/Drum Set Reading - Warmups/source/latex/working/68/lily-4c0bb56c-4.pdf'},
+  {name: 'lily-4c0bb56c-5', path: 'READING/Drum Set Reading - Warmups/source/latex/working/68/lily-4c0bb56c-5.pdf'},
+  {name: 'lily-4c0bb56c-6', path: 'READING/Drum Set Reading - Warmups/source/latex/working/68/lily-4c0bb56c-6.pdf'},
+  {name: 'lily-4c0bb56c-7', path: 'READING/Drum Set Reading - Warmups/source/latex/working/68/lily-4c0bb56c-7.pdf'},
+  {name: 'lily-4c0bb56c', path: 'READING/Drum Set Reading - Warmups/source/latex/working/68/lily-4c0bb56c.pdf'},
+  {name: 'lily-53999531-1', path: 'READING/Drum Set Reading - Warmups/source/latex/working/b0/lily-53999531-1.pdf'},
+  {name: 'lily-53999531-2', path: 'READING/Drum Set Reading - Warmups/source/latex/working/b0/lily-53999531-2.pdf'},
+  {name: 'lily-53999531-3', path: 'READING/Drum Set Reading - Warmups/source/latex/working/b0/lily-53999531-3.pdf'},
+  {name: 'lily-53999531-4', path: 'READING/Drum Set Reading - Warmups/source/latex/working/b0/lily-53999531-4.pdf'},
+  {name: 'lily-53999531-5', path: 'READING/Drum Set Reading - Warmups/source/latex/working/b0/lily-53999531-5.pdf'},
+  {name: 'lily-53999531-6', path: 'READING/Drum Set Reading - Warmups/source/latex/working/b0/lily-53999531-6.pdf'},
+  {name: 'lily-53999531-7', path: 'READING/Drum Set Reading - Warmups/source/latex/working/b0/lily-53999531-7.pdf'},
+  {name: 'lily-53999531', path: 'READING/Drum Set Reading - Warmups/source/latex/working/b0/lily-53999531.pdf'},
+  {name: 'drum-set-reading-1a', path: 'READING/Drum Set Reading/PDF/drum-set-reading-1a.pdf'},
+  {name: 'drum-set-reading-1b', path: 'READING/Drum Set Reading/PDF/drum-set-reading-1b.pdf'},
+  {name: 'drum-set-reading-2', path: 'READING/Drum Set Reading/PDF/drum-set-reading-2.pdf'},
+  {name: 'drum-set-reading-1a', path: 'READING/Drum Set Reading/drum-set-reading-1a.pdf'},
+  {name: 'origami', path: 'READING/Origami/PDF/origami.pdf'},
+  {name: 'origami', path: 'READING/Origami/source/ly/origami.pdf'},
+  {name: 'readingrhythm', path: 'READING/Reading Rhythm/PDF/readingrhythm.pdf'},
+  {name: 'rudimental-etude-1', path: 'READING/Rudimental Etudes/PDF/rudimental-etude-1.pdf'},
+  {name: 'rudimental-etude-2', path: 'READING/Rudimental Etudes/PDF/rudimental-etude-2.pdf'},
+  {name: 'rudimental-etude-3', path: 'READING/Rudimental Etudes/PDF/rudimental-etude-3.pdf'},
+  {name: 'rudimental-etude-4', path: 'READING/Rudimental Etudes/PDF/rudimental-etude-4.pdf'},
+  {name: 'rudimental-etude-5', path: 'READING/Rudimental Etudes/PDF/rudimental-etude-5.pdf'},
+  {name: 'rud05', path: 'READING/Rudimental Etudes/rud05.pdf'},
+  {name: 'theoryguide', path: 'READING/Theory Guide/PDF/theoryguide.pdf'},
+  {name: 'blackhearted', path: 'ROOTS ROCK/BLACK HEARTED WOMAN/blackhearted.pdf'},
+  {name: 'ORIGINS OF DREAMS', path: 'ROOTS ROCK/ORIGINS OF DREAMS.pdf'},
+  {name: 'pick a gripe', path: 'ROOTS ROCK/PICK A GRIPE/pick a gripe.pdf'},
+  {name: 'wp', path: 'ROOTS ROCK/WHIPPING POST/wp.pdf'},
+  {name: 'tmpv9c08fdl', path: 'ROOTS ROCK/source/latex/tmpv9c08fdl.pdf'},
+  {name: 'rrr05a', path: 'ROOTS ROCK/source/ly/rrr05a.pdf'},
+  {name: 'bluetiful', path: 'SNARE/BLUEtiful/ly/bluetiful.pdf'},
+  {name: 'beattheheat', path: 'SNARE/Beat The Heat/ly/beattheheat.pdf'},
+  {name: 'clockwise', path: 'SNARE/Clockwise/ly/clockwise.pdf'},
+  {name: 'codetojoy', path: 'SNARE/Code To Joy/ly/codetojoy.pdf'},
+  {name: 'dicersnares', path: 'SNARE/Dicer Snares/ly/dicersnares.pdf'},
+  {name: 'dontsleeponit', path: 'SNARE/Don_t Sleep On It/ly/dontsleeponit.pdf'},
+  {name: 'doubledown', path: 'SNARE/Double Down/ly/doubledown.pdf'},
+  {name: 'driveforfive', path: 'SNARE/Drive For Five/ly/driveforfive.pdf'},
+  {name: 'feedtheneed', path: 'SNARE/Feed The Need/ly/feedtheneed.pdf'},
+  {name: 'gowiththeflow', path: 'SNARE/Go With The Flow/ly/gowiththeflow.pdf'},
+  {name: 'half_half', path: 'SNARE/Half _ Half/ly/half_half.pdf'},
+  {name: 'honorroll', path: 'SNARE/Honor Roll/ly/honorroll.pdf'},
+  {name: 'hopeonthehorizon', path: 'SNARE/Hope On The Horizon/ly/hopeonthehorizon.pdf'},
+  {name: 'hopscotch', path: 'SNARE/Hopscotch/ly/hopscotch.pdf'},
+  {name: 'hourglass', path: 'SNARE/Hourglass/ly/hourglass.pdf'},
+  {name: 'jumpingjacks', path: 'SNARE/Jumping Jacks/ly/jumpingjacks.pdf'},
+  {name: 'magichat', path: 'SNARE/Magic Hat/ly/magichat.pdf'},
+  {name: 'maize', path: 'SNARE/Maize/ly/maize.pdf'},
+  {name: 'marbles', path: 'SNARE/Marbles/ly/marbles.pdf'},
+  {name: 'midnightdreams', path: 'SNARE/Midnight Dreams/ly/midnightdreams.pdf'},
+  {name: 'pangram', path: 'SNARE/Pangram/ly/pangram.pdf'},
+  {name: 'riteofway', path: 'SNARE/Rite Of Way/source/riteofway.pdf'},
+  {name: 'routestoroots', path: 'SNARE/Routes To Roots/ly/routestoroots.pdf'},
+  {name: 'sapphire', path: 'SNARE/Sapphire/ly/sapphire.pdf'},
+  {name: 'snowcone', path: 'SNARE/Snow Cone/ly/snowcone.pdf'},
+  {name: 'softserve', path: 'SNARE/Soft Serve/ly/softserve.pdf'},
+  {name: 'stairstothestars', path: 'SNARE/Stairs to the Stars/ly/stairstothestars.pdf'},
+  {name: 'stonesandbones', path: 'SNARE/Stones And Bones/ly/stonesandbones.pdf'},
+  {name: 'streaming', path: 'SNARE/Streaming/ly/streaming.pdf'},
+  {name: 'tricksofthetrade', path: 'SNARE/Tricks Of The Trade/ly/tricksofthetrade.pdf'},
+  {name: 'wheelhouse', path: 'SNARE/Wheelhouse/ly/wheelhouse.pdf'},
+  {name: 'Marbles', path: 'SNARE/_PDF/Marbles.pdf'},
+  {name: 'allrise', path: 'SNARE/_PDF/allrise.pdf'},
+  {name: 'beattheheat', path: 'SNARE/_PDF/beattheheat.pdf'},
+  {name: 'bluetiful', path: 'SNARE/_PDF/bluetiful.pdf'},
+  {name: 'clockwise', path: 'SNARE/_PDF/clockwise.pdf'},
+  {name: 'codetojoy', path: 'SNARE/_PDF/codetojoy.pdf'},
+  {name: 'dicersnares', path: 'SNARE/_PDF/dicersnares.pdf'},
+  {name: 'dontsleeponit', path: 'SNARE/_PDF/dontsleeponit.pdf'},
+  {name: 'doubledown', path: 'SNARE/_PDF/doubledown.pdf'},
+  {name: 'driveforfive', path: 'SNARE/_PDF/driveforfive.pdf'},
+  {name: 'feedtheneed', path: 'SNARE/_PDF/feedtheneed.pdf'},
+  {name: 'gowiththeflow', path: 'SNARE/_PDF/gowiththeflow.pdf'},
+  {name: 'half_half', path: 'SNARE/_PDF/half_half.pdf'},
+  {name: 'honorroll', path: 'SNARE/_PDF/honorroll.pdf'},
+  {name: 'hopeonthehorizon', path: 'SNARE/_PDF/hopeonthehorizon.pdf'},
+  {name: 'hopscotch', path: 'SNARE/_PDF/hopscotch.pdf'},
+  {name: 'hourglass', path: 'SNARE/_PDF/hourglass.pdf'},
+  {name: 'jumpingjacks', path: 'SNARE/_PDF/jumpingjacks.pdf'},
+  {name: 'magichat', path: 'SNARE/_PDF/magichat.pdf'},
+  {name: 'maize', path: 'SNARE/_PDF/maize.pdf'},
+  {name: 'midnightdreams', path: 'SNARE/_PDF/midnightdreams.pdf'},
+  {name: 'pangram', path: 'SNARE/_PDF/pangram.pdf'},
+  {name: 'riteofway', path: 'SNARE/_PDF/riteofway.pdf'},
+  {name: 'routestoroots', path: 'SNARE/_PDF/routestoroots.pdf'},
+  {name: 'sapphire', path: 'SNARE/_PDF/sapphire.pdf'},
+  {name: 'snowcone', path: 'SNARE/_PDF/snowcone.pdf'},
+  {name: 'softserve', path: 'SNARE/_PDF/softserve.pdf'},
+  {name: 'stairstothestars', path: 'SNARE/_PDF/stairstothestars.pdf'},
+  {name: 'stonesandbones', path: 'SNARE/_PDF/stonesandbones.pdf'},
+  {name: 'streaming', path: 'SNARE/_PDF/streaming.pdf'},
+  {name: 'tricksofthetrade', path: 'SNARE/_PDF/tricksofthetrade.pdf'},
+  {name: 'wheelhouse', path: 'SNARE/_PDF/wheelhouse.pdf'},
+  {name: 'rehearsalmarks', path: 'STYLE/RehearsalMarks/source/latex/rehearsalmarks.pdf'},
+  {name: '4strokeruffs', path: 'TECHNIQUE/4StrokeRuffs/PDF/4strokeruffs.pdf'},
+  {name: 'applyingprepstrokes', path: 'TECHNIQUE/ApplyingPrepStrokes/PDF/applyingprepstrokes.pdf'},
+  {name: 'bassdrumdoubles', path: 'TECHNIQUE/BassDrumDoubles/PDF/bassdrumdoubles.pdf'},
+  {name: 'CompoundDiddleRudiments', path: 'TECHNIQUE/CompoundDiddleRudiments/PDF/CompoundDiddleRudiments.pdf'},
+  {name: 'doublestroke', path: 'TECHNIQUE/DoubleStrokeRolls/PDF/doublestroke.pdf'},
+  {name: 'evenroll', path: 'TECHNIQUE/EvenRolls/PDF/evenroll.pdf'},
+  {name: 'evenroll', path: 'TECHNIQUE/EvenRolls/source/evenroll.pdf'},
+  {name: 'flamaccents', path: 'TECHNIQUE/Flam Accents/PDF/flamaccents.pdf'},
+  {name: 'flamdrags', path: 'TECHNIQUE/Flam Drags/PDF/flamdrags.pdf'},
+  {name: 'flamdrags', path: 'TECHNIQUE/Flam Drags/source/latex/flamdrags.pdf'},
+  {name: 'flamrelationships-sixteenths', path: 'TECHNIQUE/Flam Relationships/PDF/flamrelationships-sixteenths.pdf'},
+  {name: 'flamrelationships-triplets', path: 'TECHNIQUE/Flam Relationships/PDF/flamrelationships-triplets.pdf'},
+  {name: 'flamrelationships-triplets', path: 'TECHNIQUE/Flam Relationships/source/flamrelationships-triplets.pdf'},
+  {name: 'flamrelationships-sixteenths', path: 'TECHNIQUE/Flam Relationships/source/latex/flamrelationships-sixteenths.pdf'},
+  {name: 'flamtaps', path: 'TECHNIQUE/Flam Taps/PDF/flamtaps.pdf'},
+  {name: 'flamtaps', path: 'TECHNIQUE/Flam Taps/flamtaps.pdf'},
+  {name: 'flamacue', path: 'TECHNIQUE/Flamacue/PDF/flamacue.pdf'},
+  {name: 'flamacue', path: 'TECHNIQUE/Flamacue/source/latex/flamacue.pdf'},
+  {name: 'flams', path: 'TECHNIQUE/Flams/PDF/flams.pdf'},
+  {name: 'prepstroke', path: 'TECHNIQUE/PrepStrokes/PDF/prepstroke.pdf'},
+  {name: 'sixlets-aimm', path: 'TECHNIQUE/Sixlets-AIMM/PDF/sixlets-aimm.pdf'},
+  {name: 'sixlets', path: 'TECHNIQUE/Sixlets-Personal/PDF/sixlets.pdf'},
+  {name: 'swissarmytriplets', path: 'TECHNIQUE/Swiss Army Triplets/PDF/swissarmytriplets.pdf'}
+];
+        ];
+        
+        // Generate cards
+        const grid = document.getElementById('sheetsGrid');
+        const sheetCount = document.getElementById('sheetCount');
+        const updateTime = document.getElementById('updateTime');
+        const noResults = document.getElementById('noResults');
+        
+        // Set update time
+        updateTime.textContent = new Date().toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+        
+        // Set count
+        sheetCount.textContent = pdfFiles.length;
+        
+        // Create cards
+        pdfFiles.forEach(pdf => {
+            const card = document.createElement('div');
+            card.className = 'sheet-card';
+            card.dataset.name = pdf.name.toLowerCase();
+            
+            card.innerHTML = \`
+                <div class="sheet-icon">📄</div>
+                <div class="sheet-title">\${pdf.name}</div>
+                <div class="sheet-actions">
+                    <a href="\${pdf.path}" target="_blank" class="btn btn-view">View</a>
+                    <a href="\${pdf.path}" download class="btn btn-download">Download</a>
+                </div>
+            \`;
+            
+            grid.appendChild(card);
+        });
+        
+        // Search functionality
+        const searchBox = document.getElementById('searchBox');
+        const cards = document.querySelectorAll('.sheet-card');
+        
+        searchBox.addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            let hasResults = false;
+            
+            cards.forEach(card => {
+                const name = card.dataset.name;
+                if (name.includes(search)) {
+                    card.style.display = 'block';
+                    hasResults = true;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            noResults.style.display = hasResults ? 'none' : 'block';
+        });
+    </script>
+</body>
+</html>
