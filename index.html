@@ -63,9 +63,15 @@
         .sheet-title {
             font-size: 1.1em;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             color: #333;
             word-break: break-word;
+        }
+        .sheet-class {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 12px;
+            font-style: italic;
         }
         .sheet-actions {
             display: flex;
@@ -140,7 +146,7 @@
         // PDF files data will be inserted here by the bash script
         const pdfFiles = [
 const pdfFiles = [
-  {name: '3-VOICE-COMPING', path: 'CHOP SHOP/3-VOICE-COMPING.pdf'}
+  {name: '3-VOICE-COMPING', path: 'PDF/CHOP SHOP/3-VOICE-COMPING.pdf', className: 'CHOP SHOP'}
 ];
         ];
         
@@ -172,6 +178,7 @@ const pdfFiles = [
             card.innerHTML = \`
                 <div class="sheet-icon">📄</div>
                 <div class="sheet-title">\${pdf.name}</div>
+                <div class="sheet-class">Class: \${pdf.className || 'General'}</div>
                 <div class="sheet-actions">
                     <a href="\${pdf.path}" target="_blank" class="btn btn-view">View</a>
                     <a href="\${pdf.path}" download class="btn btn-download">Download</a>
