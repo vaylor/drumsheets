@@ -124,11 +124,20 @@
             margin-top: 50px;
             display: none;
         }
+        .debug-info {
+            background: rgba(255,255,255,0.95);
+            color: #333;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🥁 Eric's Drum Sheets Library xxx</h1>
+        <h1>🥁 Eric's Drum Sheets Library</h1>
         <p class="subtitle">Professional Drum Education Materials</p>
         
         <input type="text" 
@@ -148,12 +157,16 @@
             <span id="sheetCount">0</span> drum sheets available | 
             Last updated: <span id="updateTime"></span>
         </div>
+        
+        <!-- Debug section - remove this in production -->
+        <div class="debug-info" id="debugInfo"></div>
     </div>
     
     <script>
         // PDF files data will be inserted here by the bash script
         const pdfFiles = [
-const pdfFiles = [
+
+// Generated PDF data
   {name: '3-VOICE-COMPING', path: 'PDF/ChopShop/3-VOICE-COMPING.pdf', className: 'ChopShop'},
   {name: 'bellpatterns', path: 'PDF/DoubleBass/bellpatterns.pdf', className: 'DoubleBass'},
   {name: 'bellpatterns', path: 'PDF/Funk/bellpatterns.pdf', className: 'Funk'},
@@ -196,8 +209,13 @@ const pdfFiles = [
   {name: 'tricksofthetrade', path: 'PDF/Snare/tricksofthetrade.pdf', className: 'Snare'},
   {name: 'wheelhouse', path: 'PDF/Snare/wheelhouse.pdf', className: 'Snare'},
   {name: 'swissarmytriplets', path: 'PDF/Technique/swissarmytriplets.pdf', className: 'Technique'}
-];
         ];
+        
+        // Debug output
+        const debugEl = document.getElementById('debugInfo');
+        debugEl.textContent = 'Debug Info:\n' +
+            'Number of PDFs found: ' + pdfFiles.length + '\n' +
+            'PDF Array contents:\n' + JSON.stringify(pdfFiles, null, 2);
         
         // Generate cards
         const grid = document.getElementById('sheetsGrid');
