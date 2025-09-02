@@ -40,6 +40,25 @@
             border-radius: 50px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
+        .class-section {
+            margin-bottom: 40px;
+        }
+        .class-header {
+            color: white;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .class-count {
+            font-size: 0.6em;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
         .sheets-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -65,15 +84,9 @@
         .sheet-title {
             font-size: 1.1em;
             font-weight: 600;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             color: #333;
             word-break: break-word;
-        }
-        .sheet-class {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 12px;
-            font-style: italic;
         }
         .sheet-actions {
             display: flex;
@@ -90,6 +103,10 @@
             cursor: pointer;
             border: none;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
         }
         .btn-view {
             background: #003087;
@@ -105,8 +122,18 @@
         .btn-download:hover {
             background: #e0e0e0;
         }
+        .btn-share {
+            background: #28a745;
+            color: white;
+        }
+        .btn-share:hover {
+            background: #218838;
+        }
         .btn:hover {
             transform: scale(1.05);
+        }
+        .btn-icon {
+            font-size: 1.1em;
         }
         .stats {
             text-align: center;
@@ -122,16 +149,37 @@
             color: white;
             font-size: 1.2em;
             margin-top: 50px;
+            padding: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
             display: none;
         }
-        .debug-info {
-            background: rgba(255,255,255,0.95);
-            color: #333;
-            padding: 20px;
-            margin: 20px 0;
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
             border-radius: 10px;
-            font-family: monospace;
-            white-space: pre-wrap;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        @media (max-width: 768px) {
+            .sheets-grid {
+                grid-template-columns: 1fr;
+            }
+            .btn {
+                font-size: 12px;
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -145,8 +193,8 @@
                id="searchBox" 
                placeholder="Search sheets... (e.g., 'jazz', 'basic beats', 'fills')">
         
-        <div class="sheets-grid" id="sheetsGrid">
-            <!-- PDF cards will be inserted here by JavaScript -->
+        <div id="classGroups">
+            <!-- Class sections will be inserted here by JavaScript -->
         </div>
         
         <div class="no-results" id="noResults">
@@ -154,19 +202,17 @@
         </div>
         
         <div class="stats">
-            <span id="sheetCount">0</span> drum sheets available | 
+            <span id="sheetCount">0</span> drum sheets available across <span id="classCount">0</span> classes | 
             Last updated: <span id="updateTime"></span>
         </div>
-        
-        <!-- Debug section - remove this in production -->
-        <div class="debug-info" id="debugInfo"></div>
     </div>
+    
+    <div class="toast" id="toast">Link copied to clipboard!</div>
     
     <script>
         // PDF files data will be inserted here by the bash script
         const pdfFiles = [
 
-// Generated PDF data
   {name: '3-VOICE-COMPING', path: 'PDF/ChopShop/3-VOICE-COMPING.pdf', className: 'ChopShop'},
   {name: 'bellpatterns', path: 'PDF/DoubleBass/bellpatterns.pdf', className: 'DoubleBass'},
   {name: 'bellpatterns', path: 'PDF/Funk/bellpatterns.pdf', className: 'Funk'},
@@ -211,19 +257,28 @@
   {name: 'swissarmytriplets', path: 'PDF/Technique/swissarmytriplets.pdf', className: 'Technique'}
         ];
         
-        // Debug output
-        const debugEl = document.getElementById('debugInfo');
-        debugEl.textContent = 'Debug Info:\n' +
-            'Number of PDFs found: ' + pdfFiles.length + '\n' +
-            'PDF Array contents:\n' + JSON.stringify(pdfFiles, null, 2);
+        // Group PDFs by class
+        const pdfsByClass = {};
+        pdfFiles.forEach(pdf => {
+            const className = pdf.className || 'General';
+            if (!pdfsByClass[className]) {
+                pdfsByClass[className] = [];
+            }
+            pdfsByClass[className].push(pdf);
+        });
         
-        // Generate cards
-        const grid = document.getElementById('sheetsGrid');
+        // Sort classes alphabetically
+        const sortedClasses = Object.keys(pdfsByClass).sort();
+        
+        // Generate class sections
+        const classGroups = document.getElementById('classGroups');
         const sheetCount = document.getElementById('sheetCount');
+        const classCount = document.getElementById('classCount');
         const updateTime = document.getElementById('updateTime');
         const noResults = document.getElementById('noResults');
+        const toast = document.getElementById('toast');
         
-        // Set update time
+        // Set stats
         updateTime.textContent = new Date().toLocaleString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -232,48 +287,147 @@
             minute: '2-digit',
             hour12: true
         });
-        
-        // Set count
         sheetCount.textContent = pdfFiles.length;
+        classCount.textContent = sortedClasses.length;
         
-        // Create cards
-        pdfFiles.forEach(pdf => {
-            const card = document.createElement('div');
-            card.className = 'sheet-card';
-            card.dataset.name = pdf.name.toLowerCase();
+        // Create sections for each class
+        sortedClasses.forEach(className => {
+            const section = document.createElement('div');
+            section.className = 'class-section';
+            section.dataset.class = className.toLowerCase();
             
-            card.innerHTML = `
-                <div class="sheet-icon">📄</div>
-                <div class="sheet-title">${pdf.name}</div>
-                <div class="sheet-class">Class: ${pdf.className || 'General'}</div>
-                <div class="sheet-actions">
-                    <a href="${pdf.path}" target="_blank" class="btn btn-view">View</a>
-                    <a href="${pdf.path}" download class="btn btn-download">Download</a>
-                </div>
+            // Create header
+            const header = document.createElement('h2');
+            header.className = 'class-header';
+            header.innerHTML = `
+                📚 ${className}
+                <span class="class-count">${pdfsByClass[className].length} sheets</span>
             `;
+            section.appendChild(header);
             
-            grid.appendChild(card);
+            // Create grid for this class
+            const grid = document.createElement('div');
+            grid.className = 'sheets-grid';
+            
+            // Sort PDFs within class alphabetically
+            pdfsByClass[className].sort((a, b) => a.name.localeCompare(b.name));
+            
+            // Create cards for each PDF in this class
+            pdfsByClass[className].forEach(pdf => {
+                const card = document.createElement('div');
+                card.className = 'sheet-card';
+                card.dataset.name = pdf.name.toLowerCase();
+                card.dataset.class = className.toLowerCase();
+                
+                // Generate full URL for sharing
+                const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
+                const fullPdfUrl = baseUrl + pdf.path;
+                
+                card.innerHTML = `
+                    <div class="sheet-icon">📄</div>
+                    <div class="sheet-title">${pdf.name}</div>
+                    <div class="sheet-actions">
+                        <a href="${pdf.path}" target="_blank" class="btn btn-view">
+                            <span class="btn-icon">👁️</span> View
+                        </a>
+                        <a href="${pdf.path}" download class="btn btn-download">
+                            <span class="btn-icon">⬇️</span> Save
+                        </a>
+                        <button class="btn btn-share" onclick="shareSheet('${pdf.name}', '${fullPdfUrl}')">
+                            <span class="btn-icon">📧</span> Share
+                        </button>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            });
+            
+            section.appendChild(grid);
+            classGroups.appendChild(section);
         });
+        
+        // Share functionality
+        window.shareSheet = function(sheetName, sheetUrl) {
+            const subject = encodeURIComponent(`Check out this drum sheet: ${sheetName}`);
+            const body = encodeURIComponent(`Hey!\n\nI thought you might be interested in this drum sheet:\n\n${sheetName}\n\nYou can view it here: ${sheetUrl}\n\nFrom Eric's Drum Sheets Library`);
+            
+            // Try to use native sharing if available (mobile)
+            if (navigator.share) {
+                navigator.share({
+                    title: `Drum Sheet: ${sheetName}`,
+                    text: `Check out this drum sheet: ${sheetName}`,
+                    url: sheetUrl
+                }).catch((error) => {
+                    // If user cancels or share fails, fall back to email
+                    if (error.name !== 'AbortError') {
+                        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                    }
+                });
+            } else {
+                // Desktop: open email client
+                window.location.href = `mailto:?subject=${subject}&body=${body}`;
+            }
+            
+            // Also copy link to clipboard
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(sheetUrl).then(() => {
+                    toast.classList.add('show');
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                    }, 3000);
+                });
+            }
+        };
         
         // Search functionality
         const searchBox = document.getElementById('searchBox');
+        const sections = document.querySelectorAll('.class-section');
         const cards = document.querySelectorAll('.sheet-card');
         
         searchBox.addEventListener('input', (e) => {
             const search = e.target.value.toLowerCase();
             let hasResults = false;
             
-            cards.forEach(card => {
-                const name = card.dataset.name;
-                if (name.includes(search)) {
+            if (search === '') {
+                // Show all sections and cards
+                sections.forEach(section => {
+                    section.style.display = 'block';
+                });
+                cards.forEach(card => {
                     card.style.display = 'block';
-                    hasResults = true;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
+                });
+                hasResults = true;
+            } else {
+                // Hide all sections first
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                // Show matching cards and their sections
+                cards.forEach(card => {
+                    const name = card.dataset.name;
+                    const className = card.dataset.class;
+                    
+                    if (name.includes(search) || className.includes(search)) {
+                        card.style.display = 'block';
+                        card.closest('.class-section').style.display = 'block';
+                        hasResults = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Hide sections with no visible cards
+                sections.forEach(section => {
+                    const visibleCards = section.querySelectorAll('.sheet-card[style="display: block;"]');
+                    if (visibleCards.length === 0) {
+                        section.style.display = 'none';
+                    }
+                });
+            }
             
             noResults.style.display = hasResults ? 'none' : 'block';
+            classGroups.style.display = hasResults ? 'block' : 'none';
         });
     </script>
 </body>
